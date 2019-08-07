@@ -3,6 +3,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,11 +45,10 @@ public class Test extends JPanel implements KeyListener {
         frame.addKeyListener(this);
 
         nodeGroup1.size = scale;
-        //nodeGroup1.addGrid(500, 500);
+        //nodeGroup1.addRandomRectangles(1000);
+//        nodeGroup1.addGrid(500, 500);
         nodeGroup1.addRandomNodes(10000);
-        nodeGroup1.addRandomNodes(10000);
-        nodeGroup1.addRandomNodes(10000);
-        nodeGroup1.addRandomNodes(10000);
+        nodeGroup1.addRandomRectangles(100);
 
         frame.setVisible(true);
 
@@ -115,7 +116,7 @@ class NodeGroup {
     public NodeGroup() {
 
         String key = "0:0";
-        nodes.put(key, new Node(0, 0));
+        nodes.put(key, new Node(0, 0, NodeType.NATURAL));
         selectedNode = nodes.get(key);
 
     }
@@ -126,7 +127,7 @@ class NodeGroup {
                 String key = c + ":" + r;
 
                 if (!nodes.containsKey(key)) {
-                    Node node = new Node(c, r);
+                    Node node = new Node(c, r, NodeType.MINE);
                     nodes.put(key, node);
                     node.link(nodes);
                 }
@@ -144,8 +145,85 @@ class NodeGroup {
         startNode.addRandomNodes(amount, nodes);
     }
 
+    public void addRandomRectangles(int amount) {
+        for (int i = 0; i < amount; i++) {
+            int direction = RandomUtils.randomIntRange(1, 4);
+
+            int rows = 0;
+            int columns = 0;
+
+            if (RandomUtils.randomIntRange(1, 100) > 50) {
+                rows = RandomUtils.randomIntRange(1, 2);
+                columns = RandomUtils.randomIntRange(1, 20);
+            } else {
+                rows = RandomUtils.randomIntRange(1, 20);
+                columns = RandomUtils.randomIntRange(1, 2);
+            }
+
+            Node startingNode = getRandomNode();
+
+            int startingx = startingNode.x;
+            int startingy = startingNode.y;
+
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < columns; c++) {
+
+                    int newx = startingx;
+                    int newy = startingy;
+
+                    // South Right
+                    if (direction == 1) {
+                        newx += c;
+                        newy += r;
+                    }
+
+                    // North Right
+                    if (direction == 2) {
+                        newx += c;
+                        newy -= r;
+                    }
+
+                    // South Left
+                    if (direction == 3) {
+                        newx -= c;
+                        newy += r;
+                    }
+
+                    // North Left
+                    if (direction == 4) {
+                        newx -= c;
+                        newy -= r;
+                    }
+
+                    String key = newx + ":" + newy;
+
+                    if (!nodes.containsKey(key)) {
+                        Node node = new Node(newx, newy, NodeType.MINE);
+                        nodes.put(key, node);
+                        node.link(nodes);
+                    }
+                }
+            }
+        }
+    }
+
     public Node getRandomNode() {
         return (Node)nodes.values().toArray()[RandomUtils.randomIntRange(0, nodes.size() - 1)];
+    }
+
+    public Node getRandomOutsideNode() {
+
+        Node result = null;
+
+        while (result == null) {
+            Node node = getRandomNode();
+
+            if (node.top == null || node.bottom == null || node.left == null || node.right == null) {
+                result = node;
+            }
+        }
+
+        return result;
     }
 
     public void draw(Graphics2D g2d, int x, int y) {
@@ -155,15 +233,12 @@ class NodeGroup {
         }
 
         try {
-            selectedNode.img = ImageIO.read(Test.class.getResourceAsStream("swap-bag.png"));
+            selectedNode.img = ImageIO.read(Test.class.getResourceAsStream("wooden-crate.png"));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
         selectedNode.draw(g2d, x, y, size);
-
-        g2d.setColor(Test.RED);
-        g2d.draw(selectedNode.getBounds(x, y, size));
 
     }
 }
@@ -184,12 +259,20 @@ class Node {
 
     Image img;
 
-    public Node(int x, int y) {
+    NodeType type;
+
+    public Node(int x, int y, NodeType type) {
 
         this.x = x;
         this.y = y;
-        this.fillColor = Test.BACKGROUND1;
-        this.lineColor = Test.GRAY;
+        this.type = type;
+
+        if (type.equals(NodeType.NATURAL)) {
+            this.fillColor = Test.BACKGROUND1;
+        } else {
+            this.fillColor = Test.BACKGROUND1.darker();
+        }
+        this.lineColor = Color.GRAY;
 
     }
 
@@ -207,7 +290,7 @@ class Node {
         g2d.draw(bounds);
 
         if (img != null) {
-            g2d.drawImage(img, x - (size / 2), y - (size / 2), size, size, null);
+            g2d.drawImage(img, x - ((Math.max(size - 10, 1)) / 2), y - (Math.max(size - 10, 1) / 2), Math.max(size - 10, 1), Math.max(size - 10, 1), null);
         }
 
         drawn = true;
@@ -307,7 +390,7 @@ class Node {
         }
 
         if (node == null) {
-            node = new Node(x, y);
+            node = new Node(x, y, NodeType.NATURAL);
             nodes.put(key, node);
         }
 
@@ -350,4 +433,8 @@ class Node {
             node.left = this;
         }
     }
+}
+
+enum NodeType {
+    NATURAL, MINE
 }
