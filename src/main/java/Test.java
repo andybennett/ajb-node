@@ -1,10 +1,7 @@
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,11 +42,13 @@ public class Test extends JPanel implements KeyListener {
         frame.addKeyListener(this);
 
         nodeGroup1.size = scale;
-        //nodeGroup1.addRandomRectangles(1000);
-//        nodeGroup1.addGrid(500, 500);
-        nodeGroup1.addRandomNodes(10000);
-        nodeGroup1.addRandomRectangles(100);
-
+        nodeGroup1.addRandomNodes(1000, NodeType.WATER);
+        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        nodeGroup1.addRandomNodes(1000, NodeType.WATER);
+        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
         frame.setVisible(true);
 
     }
@@ -82,6 +81,22 @@ public class Test extends JPanel implements KeyListener {
             scale--;
             if (scale < 1) {
                 scale = 1;
+            }
+        } else if (keyEvent.getKeyCode() == KeyEvent.VK_LEFT) {
+            if (nodeGroup1.selectedNode.left != null) {
+                nodeGroup1.selectedNode = nodeGroup1.selectedNode.left;
+            }
+        } else if (keyEvent.getKeyCode() == KeyEvent.VK_RIGHT) {
+            if (nodeGroup1.selectedNode.right != null) {
+                nodeGroup1.selectedNode = nodeGroup1.selectedNode.right;
+            }
+        } else if (keyEvent.getKeyCode() == KeyEvent.VK_UP) {
+            if (nodeGroup1.selectedNode.top != null) {
+                nodeGroup1.selectedNode = nodeGroup1.selectedNode.top;
+            }
+        } else if (keyEvent.getKeyCode() == KeyEvent.VK_DOWN) {
+            if (nodeGroup1.selectedNode.bottom != null) {
+                nodeGroup1.selectedNode = nodeGroup1.selectedNode.bottom;
             }
         }
 
@@ -127,7 +142,7 @@ class NodeGroup {
                 String key = c + ":" + r;
 
                 if (!nodes.containsKey(key)) {
-                    Node node = new Node(c, r, NodeType.MINE);
+                    Node node = new Node(c, r, NodeType.NATURAL);
                     nodes.put(key, node);
                     node.link(nodes);
                 }
@@ -137,12 +152,12 @@ class NodeGroup {
         selectedNode = nodes.get(rows / 2 + ":" + columns / 2);
     }
 
-    public void addRandomNodes(int amount) {
-        getRandomNode().addRandomNodes(amount, nodes);
+    public void addRandomNodes(int amount, NodeType type) {
+        getRandomNode().addRandomNodes(amount, nodes, type);
     }
 
-    public void addRandomNodes(Node startNode, int amount) {
-        startNode.addRandomNodes(amount, nodes);
+    public void addRandomNodes(Node startNode, int amount, NodeType type) {
+        startNode.addRandomNodes(amount, nodes, type);
     }
 
     public void addRandomRectangles(int amount) {
@@ -198,7 +213,7 @@ class NodeGroup {
                     String key = newx + ":" + newy;
 
                     if (!nodes.containsKey(key)) {
-                        Node node = new Node(newx, newy, NodeType.MINE);
+                        Node node = new Node(newx, newy, NodeType.NATURAL);
                         nodes.put(key, node);
                         node.link(nodes);
                     }
@@ -232,13 +247,16 @@ class NodeGroup {
             node.drawn = false;
         }
 
-        try {
-            selectedNode.img = ImageIO.read(Test.class.getResourceAsStream("wooden-crate.png"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+//        try {
+//            selectedNode.img = ImageIO.read(Test.class.getResourceAsStream("wooden-crate.png"));
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
 
         selectedNode.draw(g2d, x, y, size);
+
+        g2d.setColor(selectedNode.lineColor.brighter());
+        g2d.draw(selectedNode.getBounds(x, y, size));
 
     }
 }
@@ -270,9 +288,9 @@ class Node {
         if (type.equals(NodeType.NATURAL)) {
             this.fillColor = Test.BACKGROUND1;
         } else {
-            this.fillColor = Test.BACKGROUND1.darker();
+            this.fillColor = Test.BLUE.darker().darker().darker();
         }
-        this.lineColor = Color.GRAY;
+        this.lineColor = Test.BACKGROUND1.brighter();
 
     }
 
@@ -285,7 +303,6 @@ class Node {
 
         g2d.setColor(fillColor);
         g2d.fill(bounds);
-
         g2d.setColor(lineColor);
         g2d.draw(bounds);
 
@@ -313,14 +330,14 @@ class Node {
 
     }
 
-    public void addRandomNodes(int depth, Map<String, Node> nodes) {
+    public void addRandomNodes(int depth, Map<String, Node> nodes, NodeType type) {
 
         int currentDepth = 1;
-        this.addRandomNode(depth, currentDepth, nodes);
+        this.addRandomNode(depth, currentDepth, nodes, type);
 
     }
 
-    public void addRandomNode(int depth, int currentDepth, Map<String, Node> nodes) {
+    public void addRandomNode(int depth, int currentDepth, Map<String, Node> nodes, NodeType type) {
 
         if (currentDepth < depth) {
 
@@ -328,57 +345,57 @@ class Node {
 
             if (direction == 1) {
 
-                if (addNodeTop(nodes)) {
+                if (addNodeTop(nodes, type)) {
                     currentDepth++;
                 }
 
-                top.addRandomNode(depth, currentDepth, nodes);
+                top.addRandomNode(depth, currentDepth, nodes, type);
 
             } else if (direction == 2) {
 
-                if (addNodeBottom(nodes)) {
+                if (addNodeBottom(nodes, type)) {
                     currentDepth++;
                 }
 
-                bottom.addRandomNode(depth, currentDepth, nodes);
+                bottom.addRandomNode(depth, currentDepth, nodes, type);
 
             } else if (direction == 3) {
 
-                if (addNodeLeft(nodes)) {
+                if (addNodeLeft(nodes, type)) {
                     currentDepth++;
                 }
 
-                left.addRandomNode(depth, currentDepth, nodes);
+                left.addRandomNode(depth, currentDepth, nodes, type);
 
             } else if (direction == 4) {
 
-                if (addNodeRight(nodes)) {
+                if (addNodeRight(nodes, type)) {
                     currentDepth++;
                 }
 
-                right.addRandomNode(depth, currentDepth, nodes);
+                right.addRandomNode(depth, currentDepth, nodes, type);
 
             }
         }
     }
 
-    public boolean addNodeTop(Map<String, Node> nodes) {
-        return addNode(x, y - 1, nodes);
+    public boolean addNodeTop(Map<String, Node> nodes, NodeType type) {
+        return addNode(x, y - 1, nodes, type);
     }
 
-    public boolean addNodeBottom(Map<String, Node> nodes) {
-        return addNode(x, y + 1, nodes);
+    public boolean addNodeBottom(Map<String, Node> nodes, NodeType type) {
+        return addNode(x, y + 1, nodes, type);
     }
 
-    public boolean addNodeLeft(Map<String, Node> nodes) {
-        return addNode(x - 1, y, nodes);
+    public boolean addNodeLeft(Map<String, Node> nodes, NodeType type) {
+        return addNode(x - 1, y, nodes, type);
     }
 
-    public boolean addNodeRight(Map<String, Node> nodes) {
-        return addNode(x + 1, y, nodes);
+    public boolean addNodeRight(Map<String, Node> nodes, NodeType type) {
+        return addNode(x + 1, y, nodes, type);
     }
 
-    private boolean addNode(int x, int y, Map<String, Node> nodes) {
+    private boolean addNode(int x, int y, Map<String, Node> nodes, NodeType type) {
 
         String key = x + ":" + y;
         boolean result = true;
@@ -390,7 +407,7 @@ class Node {
         }
 
         if (node == null) {
-            node = new Node(x, y, NodeType.NATURAL);
+            node = new Node(x, y, type);
             nodes.put(key, node);
         }
 
@@ -436,5 +453,5 @@ class Node {
 }
 
 enum NodeType {
-    NATURAL, MINE
+    NATURAL, WATER
 }
