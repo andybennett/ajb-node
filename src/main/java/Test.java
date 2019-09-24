@@ -42,13 +42,14 @@ public class Test extends JPanel implements KeyListener {
         frame.addKeyListener(this);
 
         nodeGroup1.size = scale;
-        nodeGroup1.addRandomNodes(1000, NodeType.WATER);
-        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
-        nodeGroup1.addRandomNodes(1000, NodeType.WATER);
-        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
-        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
-        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
-        nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        //nodeGroup1.addRandomNodes(1000, NodeType.WATER);
+        nodeGroup1.addRandomNodes(100, NodeType.NATURAL);
+        nodeGroup1.addRandomNodes(100, NodeType.NATURAL);
+        //nodeGroup1.addRandomNodes(1000, NodeType.WATER);
+        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
         frame.setVisible(true);
 
     }
