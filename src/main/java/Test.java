@@ -42,14 +42,8 @@ public class Test extends JPanel implements KeyListener {
         frame.addKeyListener(this);
 
         nodeGroup1.size = scale;
-        //nodeGroup1.addRandomNodes(1000, NodeType.WATER);
-        nodeGroup1.addRandomNodes(100, NodeType.NATURAL);
-        nodeGroup1.addRandomNodes(100, NodeType.NATURAL);
-        //nodeGroup1.addRandomNodes(1000, NodeType.WATER);
-        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
-        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
-        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
-        //nodeGroup1.addRandomNodes(1000, NodeType.NATURAL);
+        nodeGroup1.addRandomNodes(200, NodeType.NATURAL);
+
         frame.setVisible(true);
 
     }
@@ -150,7 +144,7 @@ class NodeGroup {
             }
         }
 
-        selectedNode = nodes.get(rows / 2 + ":" + columns / 2);
+        selectedNode = nodes.get("0:0");
     }
 
     public void addRandomNodes(int amount, NodeType type) {
@@ -234,7 +228,7 @@ class NodeGroup {
         while (result == null) {
             Node node = getRandomNode();
 
-            if (node.top == null || node.bottom == null || node.left == null || node.right == null) {
+            if (node.top == null || node.bottom == null || node.right == null) {
                 result = node;
             }
         }
@@ -359,7 +353,6 @@ class Node {
                 }
 
                 bottom.addRandomNode(depth, currentDepth, nodes, type);
-
             } else if (direction == 3) {
 
                 if (addNodeLeft(nodes, type)) {
@@ -367,7 +360,6 @@ class Node {
                 }
 
                 left.addRandomNode(depth, currentDepth, nodes, type);
-
             } else if (direction == 4) {
 
                 if (addNodeRight(nodes, type)) {
